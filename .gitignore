@@ -1,0 +1,12 @@
+# Claves SSH privadas
+*.pem
+id_rsa
+
+# Archivos de contraseñas (como el de Vault)
+.vault_pass.txt
+*.vault
+
+# Archivos de caché de Ansible y Python
+*.retry
+__pycache__/
+*.pyc

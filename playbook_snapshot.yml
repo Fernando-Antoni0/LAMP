@@ -1,0 +1,21 @@
+- name: 1. Tomar Snapshot Forense de Volúmenes EBS
+  hosts: docker_host
+  gather_facts: yes
+  become: no
+  
+  tasks:
+    - name: Crear snapshot CIFRADO del volumen EBS raíz
+      community.aws.ec2_ebs_snapshot:
+        volume_id: "{{ ansible_facts.ec2_instance.block_device_mappings[0].ebs.volume_id }}"
+        
+        encrypt: true 
+        
+        description: "Snapshot Forense CIFRADO para {{ inventory_hostname }} el {{ ansible_date_time.iso8601 }}"
+        tags:
+          Name: "Snapshot Forense - {{ inventory_hostname }}"
+          Proyecto: "EntornoLAMP"
+      register: ebs_snapshot_result
+      
+    - name: Mostrar ID del snapshot creado
+      debug:
+        msg: "Se creó el Snapshot CIFRADO ID: {{ ebs_snapshot_result.snapshot_id }} para el host {{ inventory_hostname }}"
