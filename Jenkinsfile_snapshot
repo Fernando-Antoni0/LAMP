@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('1. Checkout Code') {
+            steps {
+                echo 'Obteniendo código desde Git...'
+                checkout scm
+            }
+        }
+
+        stage('2. Tomar Snapshots Forenses (AWS)') {
+            steps {
+                echo '¡¡ALERTA!! Ejecutando playbook de snapshot forense...'
+                
+                sshAgent(credentials: ['aws-ec2-key-leomed', 'aws-ec2-key-fernando']) {
+                    
+                    sh "ansible-playbook -i hosts.ini playbook_snapshot.yml"
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '¡NOTIFICACIÓN! Se ha ejecutado el snapshot forense de AWS.'
+        }
+    }
+}
