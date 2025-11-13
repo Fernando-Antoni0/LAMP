@@ -1,7 +1,7 @@
 ---
 - name: Actualizar cache APT
   apt:
-    update_cache: yes
+    update_cache: true
   become: true
 
 - name: Instalar entorno LAMP
@@ -26,7 +26,7 @@
   service:
     name: apache2
     state: started
-    enabled: yes
+    enabled: true
   become: true
 
 - name: Crear pagina de info php

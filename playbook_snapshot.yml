@@ -1,14 +1,14 @@
 ---
 - name: 1. Tomar Snapshot Forense de Volúmenes EBS
   hosts: docker_host
-  gather_facts: yes
-  become: true
-  
+  gather_facts: true
+  become: false
+
   tasks:
     - name: 1. Obtener información de la instancia desde la API de AWS
       amazon.aws.ec2_instance_info:
         filters:
-          "ip-address": "{{ ansible_host }}" 
+          "ip-address": "{{ ansible_host }}"
       delegate_to: localhost
       register: ec2_info
 
@@ -21,7 +21,9 @@
     - name: 3. Crear snapshot del volumen EBS raíz
       amazon.aws.ec2_snapshot:
         volume_id: "{{ root_volume_id }}"
-        description: "Snapshot Forense para {{ inventory_hostname }} el {{ ansible_date_time.iso8601 }}"
+        description: >-
+          Snapshot Forense para {{ inventory_hostname }}
+          el {{ ansible_date_time.iso8601 }}
         snapshot_tags:
           Name: "Snapshot Forense - {{ inventory_hostname }}"
           Proyecto: "AutomatizacionLAMP"
@@ -31,6 +33,6 @@
 
     - name: 4. Mostrar ID del snapshot creado
       debug:
-        msg: "Se creó el Snapshot CIFRADO ID: {{ ebs_snapshot_result.snapshot_id }} para el host {{ inventory_hostname }}"
+        msg: "Se creó el Snapshot ID: {{ ebs_snapshot_result.snapshot_id }} para el host {{ inventory_hostname }}"
       delegate_to: localhost
       when: ebs_snapshot_result.changed

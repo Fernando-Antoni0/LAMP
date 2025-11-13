@@ -1,39 +1,40 @@
 ---
 - name: Preparacion de nodos en AWS
   hosts: docker_host
-  become: true
+  become: false
   roles:
     - role: docker
 
 - name: 2. Registrar nodos Docker creados en el inventario
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
   vars:
-  
     all_containers_info: []
   tasks:
-    
     - name: Recolectar información de contenedores de todos los hosts Docker
       set_fact:
-        all_containers_info: "{{ all_containers_info + (hostvars[item].get('docker_nodes_state', {}).get('results', []) | map('combine', {'parent_host': item}) | list) }}"
-      loop: "{{ query('inventory_hostnames', 'docker_host') }}" 
-      run_once: true 
+        all_containers_info: >-
+          {{
+            all_containers_info +
+            (hostvars[item].get('docker_nodes_state', {}).get('results', []) |
+            map('combine', {'parent_host': item}) | list)
+          }}
+      loop: "{{ query('inventory_hostnames', 'docker_host') }}"
+      run_once: true
 
     - name: Añadir nodos Docker al inventario dinámico desde la lista recolectada
       add_host:
-        
         name: "{{ item.parent_host }}_lampnode{{ item.item }}"
-        groups: lamp_nodes_docker 
-        ansible_host: "{{ hostvars[item.parent_host].ansible_host }}" 
-        ansible_port: "{{ item.container.NetworkSettings.Ports['22/tcp'][0].HostPort }}" 
+        groups: lamp_nodes_docker
+        ansible_host: "{{ hostvars[item.parent_host].ansible_host }}"
+        ansible_port: "{{ item.container.NetworkSettings.Ports['22/tcp'][0].HostPort }}"
         ansible_user: "{{ hostvars[item.parent_host].ansible_user_for_nodes }}"
         ansible_ssh_private_key_file: "{{ hostvars[item.parent_host].ansible_ssh_key_for_nodes }}"
-      loop: "{{ all_containers_info }}" 
+      loop: "{{ all_containers_info }}"
       loop_control:
         label: "{{ item.parent_host }}_lampnode{{ item.item }}"
 
-    
     - name: Mostrar nodos añadidos al grupo lamp_nodes_docker
       debug:
         var: groups.get('lamp_nodes_docker', [])

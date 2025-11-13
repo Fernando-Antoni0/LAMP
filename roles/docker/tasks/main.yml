@@ -1,26 +1,26 @@
 ---
+- name: Establecer variables de Docker
+  set_fact:
+    nodes_to_create: 2
+    base_ssh_port: 2222
+    base_http_port: 8080
+
 - name: Asegurar que los nodos antiguos sean eliminados
   community.docker.docker_container:
     name: "{{ inventory_hostname }}_lampnode{{ item }}"
     state: absent
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
-  vars:
-    nodes_to_create: 2
 
 - name: Crear los contenedores de nodos LAMP
   community.docker.docker_container:
     name: "{{ inventory_hostname }}_lampnode{{ item }}"
     image: "ubuntu-sshd:22.04"
     state: started
-    detach: yes
+    detach: true
     ports:
       - "{{ base_ssh_port + item - 1 }}:22"
       - "{{ base_http_port + item - 1 }}:80"
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
-  vars:
-    nodes_to_create: 2
-    base_ssh_port: 2222
-    base_http_port: 8080
   register: docker_nodes_state
 
 - name: Esperar a que el puerto SSH de cada contenedor esté disponible
@@ -28,20 +28,15 @@
     port: "{{ base_ssh_port + item - 1 }}"
     host: "{{ ansible_host }}"
     state: started
-    delay: 5   
-    timeout: 60 
+    delay: 5
+    timeout: 60
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
-  vars:
-    nodes_to_create: 2
-    base_ssh_port: 2222
-    
+
 - name: Distribuir la llave SSH a los nuevos contenedores
   command: >
-    docker exec {{ inventory_hostname }}_lampnode{{ item }} bash -c 
-    "mkdir -p /home/deployer/.ssh && 
-    echo '{{ lookup('file', ansible_ssh_key_for_nodes + '.pub') }}' > /home/deployer/.ssh/authorized_keys && 
-    chown -R deployer:deployer /home/deployer/.ssh && 
+    docker exec {{ inventory_hostname }}_lampnode{{ item }} bash -c
+    "mkdir -p /home/deployer/.ssh &&
+    echo '{{ lookup('file', ansible_ssh_key_for_nodes + '.pub') }}' > /home/deployer/.ssh/authorized_keys &&
+    chown -R deployer:deployer /home/deployer/.ssh &&
     chmod 600 /home/deployer/.ssh/authorized_keys"
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
-  vars:
-    nodes_to_create: 2
