@@ -15,8 +15,8 @@ pipeline {
                 sh '''
                     export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
                     export ANSIBLE_COLLECTIONS_PATHS=/var/lib/jenkins/.ansible/collections
-                    python3 -m ansiblelint
-                '''
+                    ansible-lint playbook.yml
+                    '''
                 sh 'yamllint .'
             }
         }
