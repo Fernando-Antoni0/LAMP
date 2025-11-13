@@ -1,7 +1,7 @@
 # Claves SSH privadas
 *.pem
+*.pub
 id_rsa
-id_rsa.pub
 
 # Archivos de contraseñas (como el de Vault)
 .vault_pass.txt
