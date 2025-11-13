@@ -13,10 +13,9 @@ pipeline {
             steps {
                 echo 'Validando código Ansible...'
                 sh '''
-                    export PATH=/var/lib/jenkins/.local/bin:$PATH
                     export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
                     export ANSIBLE_COLLECTIONS_PATHS=/var/lib/jenkins/.ansible/collections
-                    ansible-lint
+                    python3 -m ansiblelint
                 '''
                 sh 'yamllint .'
             }
