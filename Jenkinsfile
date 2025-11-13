@@ -12,7 +12,7 @@ pipeline {
         stage('2. Lint Ansible Code') {
             steps {
                 echo 'Validando código Ansible...'
-                sh 'ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections ansible-lint'
+                sh 'PATH=/var/lib/jenkins/.local/bin:$PATH ansible-lint'
                 sh 'yamllint .'
             }
         }
