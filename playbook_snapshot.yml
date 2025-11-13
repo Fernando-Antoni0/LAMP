@@ -2,7 +2,7 @@
 - name: 1. Tomar Snapshot Forense de Volúmenes EBS
   hosts: docker_host
   gather_facts: yes
-  become: no
+  become: true
   
   tasks:
     - name: 1. Obtener información de la instancia desde la API de AWS

@@ -1,7 +1,8 @@
+---
 - name: Actualizar cache APT
   apt:
     update_cache: yes
-  become: yes
+  become: true
 
 - name: Instalar entorno LAMP
   apt:
@@ -12,13 +13,13 @@
       - libapache2-mod-php
       - php-mysql
     state: present
-  become: yes
+  become: true
 
 - name: Configurando Apache Virtual
   template:
     src: apache-vhost.conf.j2
     dest: /etc/apache2/sites-available/000-default.conf
-  become: yes
+  become: true
   notify: restart apache
 
 - name: Asegurando inicio de apache
@@ -26,10 +27,10 @@
     name: apache2
     state: started
     enabled: yes
-  become: yes
+  become: true
 
 - name: Crear pagina de info php
   template:
     src: info.php.j2
     dest: /var/www/html/info.php
-  become: yes
+  become: true

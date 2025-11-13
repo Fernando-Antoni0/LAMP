@@ -12,7 +12,7 @@ pipeline {
         stage('2. Lint Ansible Code') {
             steps {
                 echo 'Validando código Ansible...'
-                sh 'ansible-lint roles/**/*.yml playbook.yml || true'
+                sh 'ansible-lint'
                 sh 'yamllint .'
             }
         }

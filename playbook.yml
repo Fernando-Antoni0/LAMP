@@ -1,6 +1,7 @@
+---
 - name: Preparacion de nodos en AWS
   hosts: docker_host
-  become: no
+  become: true
   roles:
     - role: docker
 
@@ -19,7 +20,6 @@
       loop: "{{ query('inventory_hostnames', 'docker_host') }}" 
       run_once: true 
 
-    
     - name: Añadir nodos Docker al inventario dinámico desde la lista recolectada
       add_host:
         
@@ -38,9 +38,8 @@
       debug:
         var: groups.get('lamp_nodes_docker', [])
 
-
 - name: Deploy LAMP
   hosts: vmware_lamp_nodes, lamp_nodes_docker
-  become: yes
+  become: true
   roles:
     - role: lamp_stack

@@ -34,7 +34,7 @@
   vars:
     nodes_to_create: 2
     base_ssh_port: 2222
-
+    
 - name: Distribuir la llave SSH a los nuevos contenedores
   command: >
     docker exec {{ inventory_hostname }}_lampnode{{ item }} bash -c 
