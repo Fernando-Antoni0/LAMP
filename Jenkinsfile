@@ -19,8 +19,11 @@ pipeline {
             steps {
                 echo 'Validando código Ansible...'
                 sh 'pip install ansible-lint yamllint'
-                sh 'ansible-lint'
-                sh 'yamllint .'
+                sh '''
+                    export PATH=$PATH:/tmp/.local/bin
+                    ansible-lint
+                    yamllint .
+                    '''
             }
         }
 
