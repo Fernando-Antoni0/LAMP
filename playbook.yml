@@ -12,7 +12,7 @@
   vars:
     all_containers_info: []
   tasks:
-    - name: Recolectar información de contenedores de todos los hosts Docker # noqa: run_once[task]
+    - name: Recolectar información de contenedores de todos los hosts Docker # noqa: run-once[task]
       ansible.builtin.set_fact:
         all_containers_info: >-
           {{
