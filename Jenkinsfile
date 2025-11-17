@@ -39,8 +39,23 @@ pipeline {
             steps {
                 echo 'Ejecutando Playbook Principal (LAMP)...'
                 
-                sshAgent(credentials: ['aws-ec2-key-leomed', 'aws-ec2-key-fernando', 'target-node-key']) {
-                    sh "ansible-playbook -i hosts.ini playbook.yml"
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
+                    sshUserPrivateKey(credentialsId: 'target-node-key', keyFileVariable: 'KEY_TARGET')
+                ]) {
+                    sh """
+                        eval \$(ssh-agent -s)
+                        ssh-add ${env.KEY_AWS_LEOMED}
+                        ssh-add ${env.KEY_AWS_FERNANDO}
+                        ssh-add ${env.KEY_TARGET}
+                        
+                        # Ejecutamos Ansible
+                        ansible-playbook -i hosts.ini playbook.yml
+                        
+                        # Limpieza
+                        ssh-agent -k
+                    """
                 }
             }
         }
