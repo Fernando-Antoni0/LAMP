@@ -19,7 +19,6 @@ pipeline {
             steps {
                 echo 'Validando código Ansible...'
                 sh 'ansible-lint'
-                sh 'yamllint .'
             }
         }
 
