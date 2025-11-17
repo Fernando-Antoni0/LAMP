@@ -1,3 +1,4 @@
+---
 extends: default
 
 rules:
@@ -6,3 +7,5 @@ rules:
     level: warning
   comments:
     min-spaces-from-content: 1
+  truthy:
+    level: warning
