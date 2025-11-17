@@ -12,7 +12,7 @@ pipeline {
         stage('2. Lint Ansible Code') {
             agent {
                 docker {
-                    image 'cytopia/ansible-lint:latest'
+                    image 'python:3.10-slim'
                     args '--entrypoint="" -e HOME=/tmp'
                 }
             }
