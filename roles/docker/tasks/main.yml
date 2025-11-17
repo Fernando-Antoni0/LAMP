@@ -36,7 +36,7 @@
   ansible.builtin.command: >
     docker exec {{ inventory_hostname }}_lampnode{{ item }} bash -c
     "mkdir -p /home/deployer/.ssh &&
-    echo '{{ lookup('file', ansible_ssh_key_for_nodes + '.pub') }}' > /home/deployer/.ssh/authorized_keys &&
+    echo '{{ lookup('file', 'id_rsa.pub') }}' > /home/deployer/.ssh/authorized_keys &&
     chown -R deployer:deployer /home/deployer/.ssh &&
     chmod 600 /home/deployer/.ssh/authorized_keys"
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
