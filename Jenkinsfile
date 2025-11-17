@@ -13,7 +13,7 @@ pipeline {
             agent {
                 docker {
                     image 'cytopia/ansible-lint:latest'
-                    args '--entrypoint=""'
+                    args '--entrypoint="" -e HOME=/tmp'
                 }
             }
             steps {
