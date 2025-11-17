@@ -12,6 +12,7 @@ pipeline {
         stage('2. Lint Ansible Code') {
             agent {
                 docker { image 'cytopia/ansible-lint:latest' }
+                args '--entrypoint=""'
             }
             steps {
                 echo 'Validando código Ansible...'
