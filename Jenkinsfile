@@ -10,11 +10,12 @@ pipeline {
         }
 
         stage('2. Lint Ansible Code') {
-           agent {
+            agent {
                 docker {
                     image 'cytopia/ansible-lint:latest'
                     args '--entrypoint=""'
                 }
+            }
             steps {
                 echo 'Validando código Ansible...'
                 sh 'ansible-lint'
@@ -22,13 +23,11 @@ pipeline {
             }
         }
 
-        
         stage('3. Provisionar y Desplegar LAMP') {
             steps {
                 echo 'Ejecutando Playbook Principal (LAMP)...'
                 
                 sshAgent(credentials: ['aws-ec2-key-leomed', 'aws-ec2-key-fernando', 'target-node-key']) {
-                    
                     sh "ansible-playbook -i hosts.ini playbook.yml"
                 }
             }
