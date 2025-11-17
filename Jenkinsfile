@@ -10,13 +10,12 @@ pipeline {
         }
 
         stage('2. Lint Ansible Code') {
+            agent {
+                docker { image 'cytopia/ansible-lint:latest' }
+            }
             steps {
                 echo 'Validando código Ansible...'
-                sh '''
-                    export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
-                    export ANSIBLE_COLLECTIONS_PATHS=/var/lib/jenkins/.ansible/collections
-                    ansible-lint playbook.yml
-                    '''
+                sh 'ansible-lint'
                 sh 'yamllint .'
             }
         }
