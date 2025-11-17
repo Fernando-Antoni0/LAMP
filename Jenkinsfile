@@ -19,6 +19,7 @@ pipeline {
             steps {
                 echo 'Validando código Ansible...'
                 sh 'pip install ansible-lint yamllint'
+                sh 'ansible-galaxy collection install community.docker amazon.aws community.windows'
                 sh '''
                     export PATH=$PATH:/tmp/.local/bin
                     ansible-lint
