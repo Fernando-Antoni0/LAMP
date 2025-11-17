@@ -18,13 +18,20 @@ pipeline {
             }
             steps {
                 echo 'Validando código Ansible...'
-                sh 'pip install ansible-lint yamllint'
-                sh 'ansible-galaxy collection install community.docker amazon.aws community.windows'
                 sh '''
+                    #Instalar herramientas
+                    pip install ansible-lint yamllint ansible-core
+                    
+                    #Actualizar PATH para esta sesión
                     export PATH=$PATH:/tmp/.local/bin
+                    
+                    #Instalar colecciones
+                    ansible-galaxy collection install community.docker amazon.aws community.windows
+                    
+                    #Ejecutar validaciones
                     ansible-lint
                     yamllint .
-                    '''
+                '''
             }
         }
 
