@@ -41,4 +41,3 @@
     chmod 600 /home/deployer/.ssh/authorized_keys"
   loop: "{{ range(1, nodes_to_create + 1) | list }}"
   changed_when: true
-  

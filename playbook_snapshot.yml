@@ -31,7 +31,7 @@
       register: ebs_snapshot_result
       when: root_volume_id is defined
 
-    - name: Mostrar ID del snapshot creado
+    - name: Mostrar ID del snapshot creado # noqa: no-handler
       ansible.builtin.debug:
         msg: "Se creó el Snapshot ID: {{ ebs_snapshot_result.snapshot_id }} para el host {{ inventory_hostname }}"
       delegate_to: localhost
