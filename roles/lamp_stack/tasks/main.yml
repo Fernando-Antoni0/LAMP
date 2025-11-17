@@ -1,11 +1,11 @@
 ---
 - name: Actualizar cache APT
-  apt:
+  ansible.builtin.apt:
     update_cache: true
   become: true
 
 - name: Instalar entorno LAMP
-  apt:
+  ansible.builtin.apt:
     name:
       - apache2
       - mysql-server
@@ -16,21 +16,23 @@
   become: true
 
 - name: Configurando Apache Virtual
-  template:
+  ansible.builtin.template:
     src: apache-vhost.conf.j2
     dest: /etc/apache2/sites-available/000-default.conf
+    mode: '0644'
   become: true
   notify: restart apache
 
 - name: Asegurando inicio de apache
-  service:
+  ansible.builtin.service:
     name: apache2
     state: started
     enabled: true
   become: true
 
 - name: Crear pagina de info php
-  template:
+  ansible.builtin.template:
     src: info.php.j2
     dest: /var/www/html/info.php
+    mode: '0644'
   become: true

@@ -1,24 +1,24 @@
 ---
-- name: 1. Tomar Snapshot Forense de Volúmenes EBS
+- name: Tomar Snapshot Forense de Volúmenes EBS
   hosts: docker_host
   gather_facts: true
   become: false
 
   tasks:
-    - name: 1. Obtener información de la instancia desde la API de AWS
+    - name: Obtener información de la instancia desde la API de AWS
       amazon.aws.ec2_instance_info:
         filters:
           "ip-address": "{{ ansible_host }}"
       delegate_to: localhost
       register: ec2_info
 
-    - name: 2. Extraer el ID del volumen raíz
-      set_fact:
+    - name: Extraer el ID del volumen raíz
+      ansible.builtin.set_fact:
         root_volume_id: "{{ ec2_info.instances[0].block_device_mappings[0].ebs.volume_id }}"
       delegate_to: localhost
       when: ec2_info.instances | length > 0
 
-    - name: 3. Crear snapshot del volumen EBS raíz
+    - name: Crear snapshot del volumen EBS raíz
       amazon.aws.ec2_snapshot:
         volume_id: "{{ root_volume_id }}"
         description: >-
@@ -31,8 +31,8 @@
       register: ebs_snapshot_result
       when: root_volume_id is defined
 
-    - name: 4. Mostrar ID del snapshot creado
-      debug:
+    - name: Mostrar ID del snapshot creado
+      ansible.builtin.debug:
         msg: "Se creó el Snapshot ID: {{ ebs_snapshot_result.snapshot_id }} para el host {{ inventory_hostname }}"
       delegate_to: localhost
       when: ebs_snapshot_result.changed

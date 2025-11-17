@@ -5,7 +5,7 @@
   roles:
     - role: docker
 
-- name: 2. Registrar nodos Docker creados en el inventario
+- name: Registrar nodos Docker creados en el inventario
   hosts: localhost
   connection: local
   gather_facts: false
@@ -13,7 +13,7 @@
     all_containers_info: []
   tasks:
     - name: Recolectar información de contenedores de todos los hosts Docker
-      set_fact:
+      ansible.builtin.set_fact:
         all_containers_info: >-
           {{
             all_containers_info +
@@ -24,7 +24,7 @@
       run_once: true
 
     - name: Añadir nodos Docker al inventario dinámico desde la lista recolectada
-      add_host:
+      ansible.builtin.add_host:
         name: "{{ item.parent_host }}_lampnode{{ item.item }}"
         groups: lamp_nodes_docker
         ansible_host: "{{ hostvars[item.parent_host].ansible_host }}"
@@ -36,7 +36,7 @@
         label: "{{ item.parent_host }}_lampnode{{ item.item }}"
 
     - name: Mostrar nodos añadidos al grupo lamp_nodes_docker
-      debug:
+      ansible.builtin.debug:
         var: groups.get('lamp_nodes_docker', [])
 
 - name: Deploy LAMP
