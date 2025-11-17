@@ -21,7 +21,7 @@
     dest: /etc/apache2/sites-available/000-default.conf
     mode: '0644'
   become: true
-  notify: restart apache
+  notify: Restart apache
 
 - name: Asegurando inicio de apache
   ansible.builtin.service:
