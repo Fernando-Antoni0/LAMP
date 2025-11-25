@@ -50,10 +50,8 @@ pipeline {
                         ssh-add ${env.KEY_AWS_FERNANDO}
                         ssh-add ${env.KEY_TARGET}
                         
-                        # Ejecutamos Ansible
                         ansible-playbook -i hosts.ini playbook.yml
-                        
-                        # Limpieza
+                    
                         ssh-agent -k
                     """
                 }
