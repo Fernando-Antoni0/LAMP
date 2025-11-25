@@ -9,7 +9,33 @@ pipeline {
             }
         }
 
-        stage('2. Tomar Snapshots Forenses (AWS)') {
+        stage('2. Lint Ansible Code') {
+            agent {
+                docker {
+                    image 'python:3.10-slim'
+                    args '--entrypoint="" -e HOME=/tmp'
+                }
+            }
+            steps {
+                echo 'Validando código Ansible...'
+                sh '''
+                    #Instalar herramientas
+                    pip install ansible-lint yamllint ansible-core
+                    
+                    #Actualizar PATH para esta sesión
+                    export PATH=$PATH:/tmp/.local/bin
+                    
+                    #Instalar colecciones
+                    ansible-galaxy collection install community.docker amazon.aws community.windows
+                    
+                    #Ejecutar validaciones
+                    ansible-lint
+                    yamllint .
+                '''
+            }
+        }
+
+        stage('3. Tomar Snapshots Forenses (AWS)') {
             steps {
                 echo '¡¡ALERTA!! Ejecutando playbook de snapshot forense...'
                 
