@@ -13,7 +13,7 @@ pipeline {
             steps {
                 echo '¡¡ALERTA!! Ejecutando playbook de snapshot forense...'
                 
-                withCredentials([
+            withCredentials([
                     sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
                     sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
                     sshUserPrivateKey(credentialsId: 'target-node-key', keyFileVariable: 'KEY_TARGET')
@@ -24,8 +24,8 @@ pipeline {
                         ssh-add ${env.KEY_AWS_FERNANDO}
                         ssh-add ${env.KEY_TARGET}
                         
-                        ansible-playbook -i hosts.ini playbook.yml
-                        
+                        ansible-playbook -i hosts.ini playbook_snapshot.yml
+                    
                         ssh-agent -k
                     """
                 }
