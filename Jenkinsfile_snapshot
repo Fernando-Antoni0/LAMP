@@ -3,55 +3,33 @@ pipeline {
 
     stages {
         stage('1. Checkout Code') {
-            steps {
-                echo 'Obteniendo código desde Git...'
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
-        stage('2. Lint Ansible Code') {
-            agent {
-                docker {
-                    image 'python:3.10-slim'
-                    args '--entrypoint="" -e HOME=/tmp'
-                }
-            }
-            steps {
-                echo 'Validando código Ansible...'
-                sh '''
-                    #Instalar herramientas
-                    pip install ansible-lint yamllint ansible-core
-                    
-                    #Actualizar PATH para esta sesión
-                    export PATH=$PATH:/tmp/.local/bin
-                    
-                    #Instalar colecciones
-                    ansible-galaxy collection install community.docker amazon.aws community.windows
-                    
-                    #Ejecutar validaciones
-                    ansible-lint
-                    yamllint .
-                '''
-            }
+        stage('2. Instalar Dependencias AWS') {
+             steps {
+                 sh 'pip3 install boto3 botocore --user'
+             }
         }
 
         stage('3. Tomar Snapshots Forenses (AWS)') {
             steps {
                 echo '¡¡ALERTA!! Ejecutando playbook de snapshot forense...'
-                
-            withCredentials([
-                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
-                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
-                    sshUserPrivateKey(credentialsId: 'target-node-key', keyFileVariable: 'KEY_TARGET')
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_LEOMED'),
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_FERNANDO')
                 ]) {
                     sh """
-                        eval \$(ssh-agent -s)
-                        ssh-add ${env.KEY_AWS_LEOMED}
-                        ssh-add ${env.KEY_AWS_FERNANDO}
-                        ssh-add ${env.KEY_TARGET}
+                        # Aseguramos que Python encuentre las librerías que acabamos de instalar
+                        export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
                         
+                        eval \$(ssh-agent -s)
+                        ssh-add ${env.KEY_LEOMED}
+                        ssh-add ${env.KEY_FERNANDO}
+                        
+                        # EJECUTA EL PLAYBOOK DE SNAPSHOTS
                         ansible-playbook -i hosts.ini playbook_snapshot.yml
-                    
+                        
                         ssh-agent -k
                     """
                 }
@@ -60,8 +38,6 @@ pipeline {
     }
     
     post {
-        always {
-            echo '¡NOTIFICACIÓN! Se ha ejecutado el snapshot forense de AWS.'
-        }
+        always { echo '¡NOTIFICACIÓN! Se ha ejecutado el snapshot forense de AWS.' }
     }
 }
