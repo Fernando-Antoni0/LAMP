@@ -12,23 +12,43 @@ pipeline {
              }
         }
 
-        stage('3. Tomar Snapshots Forenses (AWS)') {
+        stage('3. Snapshot Forense SERVER0') {
             steps {
-                echo '¡¡ALERTA!! Ejecutando playbook de snapshot forense...'
+                echo 'Iniciando snapshot para EC2 Server 0...'
+                
                 withCredentials([
-                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_LEOMED'),
-                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_FERNANDO')
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
+                    usernamePassword(credentialsId: 'aws-api-key-ec0', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh """
-                        # Aseguramos que Python encuentre las librerías que acabamos de instalar
                         export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
                         
                         eval \$(ssh-agent -s)
-                        ssh-add ${env.KEY_LEOMED}
-                        ssh-add ${env.KEY_FERNANDO}
+                        ssh-add ${env.KEY_AWS_LEOMED}
                         
-                        # EJECUTA EL PLAYBOOK DE SNAPSHOTS
-                        ansible-playbook -i hosts.ini playbook_snapshot.yml
+                        ansible-playbook -i hosts.ini playbook_snapshot.yml -l ec2_server0
+                        
+                        ssh-agent -k
+                    """
+                }
+            }
+        }
+
+        stage('4. Snapshot Forense SERVER1') {
+            steps {
+                echo 'Iniciando snapshot para EC2 Server 1...'
+                
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
+                    usernamePassword(credentialsId: 'aws-api-key-ec1', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
+                        
+                        eval \$(ssh-agent -s)
+                        ssh-add ${env.KEY_AWS_FERNANDO}
+                        
+                        ansible-playbook -i hosts.ini playbook_snapshot.yml -l ec2_server1
                         
                         ssh-agent -k
                     """
@@ -38,6 +58,7 @@ pipeline {
     }
     
     post {
-        always { echo '¡NOTIFICACIÓN! Se ha ejecutado el snapshot forense de AWS.' }
+        success { echo '¡Snapshots Forenses completados!' }
+        failure { echo '¡Error al tomar Snapshots!' }
     }
 }
