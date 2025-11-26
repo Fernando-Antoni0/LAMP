@@ -1,43 +1,47 @@
 ---
-- name: Recolección de Evidencia Volátil
+- name: Recolección de Evidencia Volátil (Live Forensics)
   hosts: all
   become: true
   gather_facts: true
 
   vars:
-    report_path: "/tmp/REPORTE_FORENSE_{{ inventory_hostname }}_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.txt"
+    report_path: "/tmp/REPORTE_FORENSE_{{ inventory_hostname }}_{{ ansible_date_time.iso8601_basic_short }}.txt"
 
   tasks:
     - name: Cabecera del reporte
-      shell: |
+      ansible.builtin.shell: |
         echo "=== REPORTE FORENSE DIGITAL ===" > {{ report_path }}
         echo "Host: {{ inventory_hostname }}" >> {{ report_path }}
         echo "Fecha: {{ ansible_date_time.iso8601 }}" >> {{ report_path }}
         echo "===============================" >> {{ report_path }}
+      changed_when: true
 
-    - name: Conexiones de Red (Netstat)
-      shell: |
+    - name: Capturar Conexiones de Red (Netstat) # noqa: ignore-errors
+      ansible.builtin.shell: |
         echo -e "\n[1] CONEXIONES DE RED ACTIVAS:" >> {{ report_path }}
         netstat -tulpn >> {{ report_path }}
       ignore_errors: true
+      changed_when: true
 
-    - name: Procesos en Ejecución (PS)
-      shell: |
+    - name: Capturar Procesos en Ejecución (PS)
+      ansible.builtin.shell: |
         echo -e "\n[2] PROCESOS EN EJECUCIÓN:" >> {{ report_path }}
         ps auxf >> {{ report_path }}
+      changed_when: true
 
-    - name: Usuarios Conectados (Who)
-      shell: |
+    - name: Capturar Usuarios Conectados (Who)
+      ansible.builtin.shell: |
         echo -e "\n[3] USUARIOS CONECTADOS:" >> {{ report_path }}
         w >> {{ report_path }}
+      changed_when: true
 
-    - name: Extraer el reporte hacia el Nodo de Control
+    - name: Extraer el reporte hacia el Nodo de Control (Jenkins)
       ansible.builtin.fetch:
         src: "{{ report_path }}"
         dest: "evidencia_forense/"
-        flat: yes
+        flat: true
 
-    - name: Limpiar reporte
-      file:
+    - name: Limpiar reporte del servidor remoto
+      ansible.builtin.file:
         path: "{{ report_path }}"
         state: absent
