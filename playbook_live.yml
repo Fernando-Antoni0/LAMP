@@ -1,5 +1,5 @@
 ---
-- name: Recolección de Evidencia Volátil (Live Forensics)
+- name: Recolección de Evidencia Volátil
   hosts: all
   become: true
   gather_facts: true
@@ -10,32 +10,55 @@
   tasks:
     - name: Cabecera del reporte
       ansible.builtin.shell: |
-        echo "=== REPORTE FORENSE DIGITAL ===" > {{ report_path }}
-        echo "Host: {{ inventory_hostname }}" >> {{ report_path }}
+        echo "=== REPORTE FORENSE DIGITAL (HOST + CONTENEDORES) ===" > {{ report_path }}
+        echo "Host Anfitrión: {{ inventory_hostname }}" >> {{ report_path }}
         echo "Fecha: {{ ansible_date_time.iso8601 }}" >> {{ report_path }}
-        echo "===============================" >> {{ report_path }}
+        echo "===================================================" >> {{ report_path }}
       changed_when: true
 
     - name: Capturar Conexiones de Red (Netstat) # noqa: ignore-errors
       ansible.builtin.shell: |
-        echo -e "\n[1] CONEXIONES DE RED ACTIVAS:" >> {{ report_path }}
-        netstat -tulpn >> {{ report_path }}
+        echo -e "\n\n[1] CONEXIONES DE RED DEL HOST:" >> {{ report_path }}
+        # Intentamos usar netstat, si falla (no instalado) no detiene el playbook
+        netstat -tulpn >> {{ report_path }} || echo "Comando netstat no disponible en el host" >> {{ report_path }}
       ignore_errors: true
       changed_when: true
 
     - name: Capturar Procesos en Ejecución (PS)
       ansible.builtin.shell: |
-        echo -e "\n[2] PROCESOS EN EJECUCIÓN:" >> {{ report_path }}
+        echo -e "\n[2] PROCESOS DEL HOST EN EJECUCIÓN:" >> {{ report_path }}
         ps auxf >> {{ report_path }}
       changed_when: true
 
     - name: Capturar Usuarios Conectados (Who)
       ansible.builtin.shell: |
-        echo -e "\n[3] USUARIOS CONECTADOS:" >> {{ report_path }}
+        echo -e "\n[3] USUARIOS CONECTADOS AL HOST:" >> {{ report_path }}
         w >> {{ report_path }}
       changed_when: true
+    
+    - name: Detectar contenedores Docker en ejecución
+      ansible.builtin.shell: docker ps --format "{{ '{{' }}.Names{{ '}}' }}"
+      register: running_containers
+      changed_when: false
+      ignore_errors: true
 
-    - name: Extraer el reporte hacia el Nodo de Control (Jenkins)
+    - name: Extraer evidencia DENTRO de cada contenedor
+      ansible.builtin.shell: |
+        echo -e "\n\n-----------------------------------------" >> {{ report_path }}
+        echo ">>> ANALIZANDO CONTENEDOR: {{ item }}" >> {{ report_path }}
+        echo "-----------------------------------------" >> {{ report_path }}
+
+        echo -e "\n[Conexiones Internas]" >> {{ report_path }}
+        docker exec {{ item }} netstat -tulpn >> {{ report_path }} 2>&1 || echo "Falló netstat interno" >> {{ report_path }}
+
+        echo -e "\n[Procesos Internos]" >> {{ report_path }}
+        docker exec {{ item }} ps aux >> {{ report_path }} 2>&1 || echo "Falló ps interno" >> {{ report_path }}
+      loop: "{{ running_containers.stdout_lines | default([]) }}"
+      when: running_containers.rc == 0 and running_containers.stdout_lines | length > 0
+      ignore_errors: true
+      changed_when: true
+
+    - name: Extraer el reporte hacia el Nodo de Control
       ansible.builtin.fetch:
         src: "{{ report_path }}"
         dest: "evidencia_forense/"
