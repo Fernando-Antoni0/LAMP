@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Captura Forense') {
+            steps {
+                
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
+                    sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
+                    sshUserPrivateKey(credentialsId: 'target-node-key', keyFileVariable: 'KEY_TARGET')
+                ]) {
+                    sh """
+                        eval \$(ssh-agent -s)
+                        ssh-add ${env.KEY_AWS_LEOMED}
+                        ssh-add ${env.KEY_AWS_FERNANDO}
+                        ssh-add ${env.KEY_TARGET}
+                        
+                        ansible-playbook -i hosts.ini playbook_live.yml
+                    
+                        ssh-agent -k
+                    """
+                }
+            }
+        }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'evidencia_forense/*.txt', fingerprint: true
+            echo 'Evidencia recolectada'
+        }
+    }
+}

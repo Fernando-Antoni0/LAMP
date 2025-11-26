@@ -1,0 +1,43 @@
+---
+- name: Recolección de Evidencia Volátil
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    report_path: "/tmp/REPORTE_FORENSE_{{ inventory_hostname }}_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.txt"
+
+  tasks:
+    - name: Cabecera del reporte
+      shell: |
+        echo "=== REPORTE FORENSE DIGITAL ===" > {{ report_path }}
+        echo "Host: {{ inventory_hostname }}" >> {{ report_path }}
+        echo "Fecha: {{ ansible_date_time.iso8601 }}" >> {{ report_path }}
+        echo "===============================" >> {{ report_path }}
+
+    - name: Conexiones de Red (Netstat)
+      shell: |
+        echo -e "\n[1] CONEXIONES DE RED ACTIVAS:" >> {{ report_path }}
+        netstat -tulpn >> {{ report_path }}
+      ignore_errors: true
+
+    - name: Procesos en Ejecución (PS)
+      shell: |
+        echo -e "\n[2] PROCESOS EN EJECUCIÓN:" >> {{ report_path }}
+        ps auxf >> {{ report_path }}
+
+    - name: Usuarios Conectados (Who)
+      shell: |
+        echo -e "\n[3] USUARIOS CONECTADOS:" >> {{ report_path }}
+        w >> {{ report_path }}
+
+    - name: Extraer el reporte hacia el Nodo de Control
+      ansible.builtin.fetch:
+        src: "{{ report_path }}"
+        dest: "evidencia_forense/"
+        flat: yes
+
+    - name: Limpiar reporte
+      file:
+        path: "{{ report_path }}"
+        state: absent
