@@ -35,24 +35,26 @@
         echo -e "\n[3] USUARIOS CONECTADOS AL HOST:" >> {{ report_path }}
         w >> {{ report_path }}
       changed_when: true
-    
+
     - name: Detectar contenedores Docker en ejecución
       ansible.builtin.shell: docker ps --format "{{ '{{' }}.Names{{ '}}' }}"
       register: running_containers
       changed_when: false
       ignore_errors: true
 
-    - name: Extraer evidencia DENTRO de cada contenedor
+    - name: Extraer evidencia DENTRO de cada contenedor # noqa: ignore-errors
       ansible.builtin.shell: |
         echo -e "\n\n-----------------------------------------" >> {{ report_path }}
         echo ">>> ANALIZANDO CONTENEDOR: {{ item }}" >> {{ report_path }}
         echo "-----------------------------------------" >> {{ report_path }}
 
         echo -e "\n[Conexiones Internas]" >> {{ report_path }}
-        docker exec {{ item }} netstat -tulpn >> {{ report_path }} 2>&1 || echo "Falló netstat interno" >> {{ report_path }}
+        docker exec {{ item }} netstat -tulpn >> {{ report_path }} \
+        2>&1 || echo "Falló netstat interno" >> {{ report_path }}
 
         echo -e "\n[Procesos Internos]" >> {{ report_path }}
-        docker exec {{ item }} ps aux >> {{ report_path }} 2>&1 || echo "Falló ps interno" >> {{ report_path }}
+        docker exec {{ item }} ps aux >> {{ report_path }} \
+        2>&1 || echo "Falló ps interno" >> {{ report_path }}
       loop: "{{ running_containers.stdout_lines | default([]) }}"
       when: running_containers.rc == 0 and running_containers.stdout_lines | length > 0
       ignore_errors: true
