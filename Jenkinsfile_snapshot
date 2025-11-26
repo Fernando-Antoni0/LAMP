@@ -18,7 +18,7 @@ pipeline {
                 
                 withCredentials([
                     sshUserPrivateKey(credentialsId: 'aws-ec2-key-leomed', keyFileVariable: 'KEY_AWS_LEOMED'),
-                    usernamePassword(credentialsId: 'aws-api-key-ec0', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                    usernamePassword(credentialsId: 'aws-api-credentials-ec0', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh """
                         export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
@@ -40,7 +40,7 @@ pipeline {
                 
                 withCredentials([
                     sshUserPrivateKey(credentialsId: 'aws-ec2-key-fernando', keyFileVariable: 'KEY_AWS_FERNANDO'),
-                    usernamePassword(credentialsId: 'aws-api-key-ec1', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                    usernamePassword(credentialsId: 'aws-api-credentials-ec1', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh """
                         export PYTHONPATH=/var/lib/jenkins/.local/lib/python3.10/site-packages
