@@ -1,7 +1,7 @@
 ---
 - name: Establecer variables de Docker # noqa: var-naming[no-role-prefix]
   ansible.builtin.set_fact:
-    nodes_to_create: 6
+    nodes_to_create: 3
     base_ssh_port: 2222
     base_http_port: 8080
 
